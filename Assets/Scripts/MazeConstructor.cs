@@ -50,7 +50,8 @@ public class MazeConstructor : MonoBehaviour
     }
 
     private MazeDataGenerator dataGenerator;
-    private MazeMeshGenerator meshGenerator;
+	private MazeMeshGenerator meshGenerator;
+	private readonly System.Random random = new System.Random();
 
     void Awake()
     {
@@ -69,17 +70,21 @@ public class MazeConstructor : MonoBehaviour
     public void GenerateNewMaze(int sizeRows, int sizeCols,
         TriggerEventHandler startCallback=null, TriggerEventHandler goalCallback=null)
     {
-        if (sizeRows % 2 == 0 && sizeCols % 2 == 0)
-        {
-            Debug.LogError("Odd numbers work better for dungeon size.");
-        }
+		if (sizeRows % 2 == 0)
+			sizeRows += 1;
+		if (sizeCols % 2 == 0)
+			sizeCols += 1;
 
         DisposeOldMaze();
 
         data = dataGenerator.FromDimensions(sizeRows, sizeCols);
 
-        FindStartPosition();
-        FindGoalPosition();
+		Pair start = GetRandomPosition ();
+		startRow = start.First;
+		startCol = start.Second;
+		Pair goal = GetRandomPosition ();
+		goalRow = goal.First;
+		goalCol = goal.Second;
 
         // store values used to generate this mesh
         hallWidth = meshGenerator.width;
@@ -87,7 +92,7 @@ public class MazeConstructor : MonoBehaviour
 
         DisplayMaze();
 
-        PlaceStartTrigger(startCallback);
+        //PlaceStartTrigger(startCallback);
         PlaceGoalTrigger(goalCallback);
     }
 
@@ -116,6 +121,7 @@ public class MazeConstructor : MonoBehaviour
         }
     }
 
+	/*
     private void FindStartPosition()
     {
         int[,] maze = data;
@@ -135,26 +141,29 @@ public class MazeConstructor : MonoBehaviour
             }
         }
     }
+    */
 
-    private void FindGoalPosition()
+	private Pair GetRandomPosition()
     {
         int[,] maze = data;
+		List<Pair> possible_locations = new List<Pair>();
         int rMax = maze.GetUpperBound(0);
         int cMax = maze.GetUpperBound(1);
 
         // loop top to bottom, right to left
-        for (int i = rMax; i >= 0; i--)
-        {
-            for (int j = cMax; j >= 0; j--)
+		for (int i = 0; i <= rMax; i++)
+		{
+			for (int j = 0; j <= cMax; j++)
             {
                 if (maze[i, j] == 0)
                 {
-                    goalRow = i;
-                    goalCol = j;
-                    return;
+					possible_locations.Add (new Pair (i, j));
                 }
             }
         }
+		Pair selection = possible_locations[random.Next (possible_locations.Count)];
+		Debug.Log (string.Format("From {0} options, picked {1}", possible_locations.Count, selection.ToString()));
+		return selection;
     }
 
     private void PlaceStartTrigger(TriggerEventHandler callback)
@@ -218,4 +227,34 @@ public class MazeConstructor : MonoBehaviour
 
         GUI.Label(new Rect(20, 20, 500, 500), msg);
     }
+}
+
+class Pair {
+	public int First { get; private set; }
+	public int Second { get; private set; }
+	public Pair(int first, int second) {
+		this.First = first;
+		this.Second = second;
+	}
+
+	public override bool Equals(object obj) {
+		if(Object.ReferenceEquals(this, obj)) {
+			return true;
+		}
+		Pair instance = obj as Pair;
+		if(instance == null) {
+			return false;
+		}
+		return this.First == instance.First && this.Second == instance.Second ||
+			this.First == instance.Second && this.Second == instance.First;
+	}
+
+	public override int GetHashCode() {
+		return this.First.GetHashCode() ^ this.Second.GetHashCode();
+	}
+
+	public override string ToString ()
+	{
+		return this.First.ToString () + "," + this.Second.ToString ();
+	}
 }

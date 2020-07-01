@@ -22,21 +22,26 @@ public class GameController : MonoBehaviour
 
     private DateTime startTime;
     private int timeLimit;
-    private int reduceLimitBy;
 
     private int score;
     private bool goalReached;
 
+	private int sizeRows;
+	private int sizeCols;
+
+	private readonly System.Random random = new System.Random();
+
     // Use this for initialization
     void Start() {
+		Cursor.visible = false;
+		Cursor.lockState = CursorLockMode.Locked;
         generator = GetComponent<MazeConstructor>();
         StartNewGame();
     }
 
     private void StartNewGame()
     {
-        timeLimit = 80;
-        reduceLimitBy = 5;
+        timeLimit = 0;
         startTime = DateTime.Now;
 
         score = 0;
@@ -47,7 +52,10 @@ public class GameController : MonoBehaviour
 
     private void StartNewMaze()
     {
-        generator.GenerateNewMaze(13, 15, OnStartTrigger, OnGoalTrigger);
+		sizeRows = random.Next(11, 31);
+		sizeCols = random.Next(11, 31);
+		Debug.Log ("Rows: " + sizeRows.ToString() + "  Cols: " + sizeCols.ToString());
+		generator.GenerateNewMaze(sizeRows, sizeCols, OnStartTrigger, OnGoalTrigger);
 
         float x = generator.startCol * generator.hallWidth;
         float y = 1;
@@ -58,32 +66,33 @@ public class GameController : MonoBehaviour
         player.enabled = true;
 
         // restart timer
-        timeLimit -= reduceLimitBy;
-        startTime = DateTime.Now;
+        //startTime = DateTime.Now;
     }
 
     // Update is called once per frame
     void Update()
     {
+		if (Input.GetKey (KeyCode.Escape)) {
+			Cursor.visible = true;
+			Cursor.lockState = CursorLockMode.None;
+			Debug.Log (Application.platform);
+			if (Application.platform != RuntimePlatform.WebGLPlayer) {
+				Application.Quit ();
+			}
+		}
+		if (Input.GetMouseButtonDown (0) || Input.GetKeyDown(KeyCode.Space)) {
+			Cursor.visible = false;
+			Cursor.lockState = CursorLockMode.Locked;
+		}
         if (!player.enabled)
         {
             return;
         }
 
         int timeUsed = (int)(DateTime.Now - startTime).TotalSeconds;
-        int timeLeft = timeLimit - timeUsed;
+        int timeLeft = timeLimit + timeUsed;
 
-        if (timeLeft > 0)
-        {
-            timeLabel.text = timeLeft.ToString();
-        }
-        else
-        {
-            timeLabel.text = "TIME UP";
-            player.enabled = false;
-
-            Invoke("StartNewGame", 4);
-        }
+        timeLabel.text = timeLeft.ToString();
     }
 
     private void OnGoalTrigger(GameObject trigger, GameObject other)
@@ -94,7 +103,10 @@ public class GameController : MonoBehaviour
         score += 1;
         scoreLabel.text = score.ToString();
 
-        Destroy(trigger);
+		Destroy(trigger);
+		player.enabled = false;
+
+		Invoke("StartNewMaze", 4);
     }
 
     private void OnStartTrigger(GameObject trigger, GameObject other)
