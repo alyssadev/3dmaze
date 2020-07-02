@@ -6,9 +6,9 @@ A modification of Joseph Hocking's [maze tutorial](https://www.raywenderlich.com
 * Random location of start and end points
 * Faster walk speed
 * Lower mouse sensitivity
-* Compiled to [WebGL](https://alyssadev.github.io/3dmaze)
+* Compiled to [WebGL](https://alyssadev.github.io/3dmaze/index.html)
 
 Download
 --------
 
-Get the [latest release](https://github.com/alyssadev/3dmaze/releases/latest), or [play online](https://alyssadev.github.io/3dmaze)
+Get the [latest release](https://github.com/alyssadev/3dmaze/releases/latest), or [play online](https://alyssadev.github.io/3dmaze/index.html)
